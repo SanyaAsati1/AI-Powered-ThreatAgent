@@ -35,7 +35,33 @@ def analyze():
         "threat_level": threat_level,
         "report": report
     })
-
+@app.route("/analyze/batch", methods=["POST"])
+def analyze_batch():
+    data = request.get_json()
+    ips = data.get("ips", [])
+    
+    if not ips:
+        return jsonify({"error": "List of IPs is required"}), 400
+    
+    results = []
+    for ip in ips:
+        vt_result = check_virustotal(ip)
+        abuse_result = check_abuseipdb(ip)
+        threat_level = classify_threat(vt_result, abuse_result)
+        report = generate_report(ip, vt_result, abuse_result, threat_level)
+        log_threat(ip, vt_result, abuse_result, threat_level, report)
+        results.append({
+            "ip": ip,
+            "threat_level": threat_level,
+            "abuse_score": abuse_result["abuse_score"],
+            "malicious_detections": vt_result["malicious"],
+            "report": report
+        })
+    
+    return jsonify({
+        "total_analyzed": len(ips),
+        "results": results
+    })
 @app.route("/logs", methods=["GET"])
 def logs():
     import sqlite3
