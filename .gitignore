@@ -5,4 +5,4 @@ threat_logs.db
 api_keysIPDB.txt
 api_keysVirusTotal.txt
 api_keysGemini.txt
-*.txt
+api_keys*.txt
